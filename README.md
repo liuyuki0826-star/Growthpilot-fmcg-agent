@@ -5,6 +5,15 @@ An evidence-grounded sales and SKU analysis agent for FMCG e-commerce operations
 GrowthPilot 是一款面向快消品牌电商运营人员的本地经营分析 Agent。它能够读取销售、库存、广告和用户评价数据，通过 Python 计算经营指标、识别 SKU 风险，再使用本地大模型生成有证据约束的运营建议。
 
 > 当前版本使用模拟数据，仅用于产品设计和技术演示。AI建议不能自动执行，必须经过人工审核。
+## 产品截图
+
+### 经营分析与风险识别
+
+![GrowthPilot 经营分析看板](assets/growthpilot-dashboard.png)
+
+### AI建议与人工审核
+
+![GrowthPilot AI建议与人工审核](assets/growthpilot-ai-review.png)
 
 ## 产品背景
 
