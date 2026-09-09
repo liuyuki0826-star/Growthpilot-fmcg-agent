@@ -152,3 +152,124 @@ with output_path.open(
 
 print(f"成功生成模拟销售数据：{output_path}")
 print(f"数据行数：{len(sales_rows)}")
+
+REVIEW_TEMPLATES = {
+    "SKU001": {
+        "positive": [
+            "口感清爽，青柠味很好。",
+            "无糖但不难喝，会继续购买。",
+            "气泡很足，夏天喝很合适。",
+        ],
+        "negative": [
+            "最近买到的气泡不足。",
+            "这次的味道比以前淡。",
+            "包装有凹陷，口感也一般。",
+        ],
+    },
+    "SKU002": {
+        "positive": [
+            "早餐吃很方便，饱腹感不错。",
+            "燕麦口感很好，不会太甜。",
+            "独立包装适合带去办公室。",
+        ],
+        "negative": [
+            "口感有点干。",
+            "价格偏高，希望活动多一点。",
+            "包装容易碎。",
+        ],
+    },
+    "SKU003": {
+        "positive": [
+            "清洁效果不错，洗完很清爽。",
+            "香味自然，控油效果可以。",
+            "包装设计很好看。",
+        ],
+        "negative": [
+            "控油效果不够持久。",
+            "价格有点贵。",
+            "瓶盖运输时漏液。",
+        ],
+    },
+    "SKU004": {
+        "positive": [
+            "湿巾柔软，宝宝使用没有不适。",
+            "水分充足，包装密封不错。",
+            "家庭使用很方便。",
+        ],
+        "negative": [
+            "到货速度比较慢。",
+            "经常显示库存不足。",
+            "外包装有破损。",
+        ],
+    },
+    "SKU005": {
+        "positive": [
+            "蛋白质含量高，早餐很方便。",
+            "口感浓郁，不会太甜。",
+            "冷藏送达，包装完整。",
+        ],
+        "negative": [
+            "保质期比预期短。",
+            "运输过程中不够冰。",
+            "价格比普通酸奶高。",
+        ],
+    },
+}
+
+review_rows = []
+
+for review_number in range(1, 161):
+    product = random.choice(PRODUCTS)
+    platform = random.choice(PLATFORMS)
+    day_number = random.randint(0, DAYS - 1)
+    review_date = START_DATE + timedelta(days=day_number)
+
+    # SKU001在销量下降期间出现较多负面评价
+    if product["sku_id"] == "SKU001" and day_number >= 23:
+        rating = random.choice([1, 2])
+        review_text = random.choice(
+            REVIEW_TEMPLATES[product["sku_id"]]["negative"]
+        )
+    else:
+        rating = random.choice([3, 4, 4, 5, 5])
+
+        if rating >= 4:
+            review_type = "positive"
+        else:
+            review_type = "negative"
+
+        review_text = random.choice(
+            REVIEW_TEMPLATES[product["sku_id"]][review_type]
+        )
+
+    review_rows.append(
+        {
+            "review_id": f"R{review_number:04d}",
+            "date": review_date.isoformat(),
+            "platform": platform,
+            "sku_id": product["sku_id"],
+            "rating": rating,
+            "review_text": review_text,
+        }
+    )
+
+
+reviews_output_path = DATA_DIR / "sample_reviews.csv"
+
+with reviews_output_path.open(
+    mode="w",
+    newline="",
+    encoding="utf-8-sig",
+) as csv_file:
+    fieldnames = list(review_rows[0].keys())
+
+    writer = csv.DictWriter(
+        csv_file,
+        fieldnames=fieldnames,
+    )
+
+    writer.writeheader()
+    writer.writerows(review_rows)
+
+print(f"成功生成模拟评价数据：{reviews_output_path}")
+print(f"评价数量：{len(review_rows)}")
