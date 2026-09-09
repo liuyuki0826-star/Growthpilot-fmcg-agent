@@ -7,6 +7,7 @@ import plotly.express as px
 
 from src.diagnosis import detect_all_risks
 from src.reviews import (
+    add_review_evidence_to_risks,
     analyze_review_themes,
     load_review_data,
 )
@@ -246,6 +247,11 @@ except ValueError as error:
     st.stop()
 
 
+risks_with_reviews = add_review_evidence_to_risks(
+    risks,
+    review_data,
+)
+
 review_summary = analyze_review_themes(review_data)
 
 total_reviews = len(review_data)
@@ -342,7 +348,7 @@ if st.button(
     try:
         with st.spinner("本地模型正在分析经营风险……"):
             st.session_state.ai_recommendations = (
-                generate_recommendations(risks)
+               generate_recommendations(risks_with_reviews)
             )
 
     except RuntimeError as error:
@@ -375,7 +381,7 @@ if st.session_state.ai_recommendations:
                 f"{risk['risk_type']}："
                 f"{risk['evidence']}"
             )
-            for _, risk in risks.iterrows()
+            for _, risk in risks_with_reviews.iterrows()
         ]
     )
 

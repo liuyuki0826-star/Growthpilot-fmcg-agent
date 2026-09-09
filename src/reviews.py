@@ -149,3 +149,73 @@ def analyze_review_themes(
         ["negative_rate", "review_count"],
         ascending=[False, False],
     )
+def add_review_evidence_to_risks(
+    risks: pd.DataFrame,
+    reviews: pd.DataFrame,
+    days: int = 7,
+) -> pd.DataFrame:
+    """把近期用户评价证据添加到SKU风险中。"""
+
+    result = risks.copy()
+
+    if result.empty or reviews.empty:
+        return result
+
+    latest_date = reviews["date"].max()
+    start_date = latest_date - pd.Timedelta(
+        days=days - 1
+    )
+
+    recent_reviews = reviews[
+        reviews["date"] >= start_date
+    ].copy()
+
+    for index, risk in result.iterrows():
+        sku_reviews = recent_reviews[
+            recent_reviews["sku_id"]
+            == risk["sku_id"]
+        ]
+
+        if sku_reviews.empty:
+            review_evidence = "最近7天没有用户评价数据"
+        else:
+            review_count = len(sku_reviews)
+            average_rating = sku_reviews["rating"].mean()
+
+            negative_reviews = sku_reviews[
+                sku_reviews["rating"] <= 2
+            ]
+
+            negative_count = len(negative_reviews)
+            negative_rate = (
+                negative_count / review_count
+            )
+
+            if negative_reviews.empty:
+                main_negative_theme = "未发现明确负面主题"
+            else:
+                negative_themes = (
+                    negative_reviews["review_text"]
+                    .apply(classify_review_themes)
+                    .explode()
+                )
+
+                main_negative_theme = (
+                    negative_themes.value_counts()
+                    .index[0]
+                )
+
+            review_evidence = (
+                f"最近7天共有{review_count}条评价，"
+                f"平均评分{average_rating:.2f}，"
+                f"负面评价{negative_count}条"
+                f"（{negative_rate:.1%}），"
+                f"主要负面主题：{main_negative_theme}"
+            )
+
+        result.at[index, "evidence"] = (
+            f"{risk['evidence']}；"
+            f"用户评价证据：{review_evidence}"
+        )
+
+    return result
