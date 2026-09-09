@@ -6,6 +6,11 @@ import streamlit as st
 import plotly.express as px
 
 from src.diagnosis import detect_all_risks
+from src.reviews import (
+    analyze_review_themes,
+    load_review_data,
+)
+
 
 from src.metrics import (
     calculate_row_metrics,
@@ -16,6 +21,7 @@ from src.metrics import (
 
 PROJECT_ROOT = Path(__file__).resolve().parent
 SAMPLE_SALES_PATH = PROJECT_ROOT / "data" / "sample_sales.csv"
+SAMPLE_REVIEWS_PATH = PROJECT_ROOT / "data" / "sample_reviews.csv"
 
 
 st.set_page_config(
@@ -215,8 +221,110 @@ else:
         if risk["severity"] == "high":
             st.error(risk_message)
         else:
+            
             st.warning(risk_message)
-            st.header("AI运营建议")
+st.header("用户评价洞察")
+
+uploaded_reviews = st.sidebar.file_uploader(
+    "上传用户评价数据",
+    type=["csv"],
+    key="review_uploader",
+)
+
+if uploaded_reviews is None:
+    review_source = SAMPLE_REVIEWS_PATH
+    st.sidebar.info("当前使用模拟评价数据")
+else:
+    review_source = uploaded_reviews
+    st.sidebar.success("已加载用户上传的评价数据")
+
+
+try:
+    review_data = load_review_data(review_source)
+except ValueError as error:
+    st.error(str(error))
+    st.stop()
+
+
+review_summary = analyze_review_themes(review_data)
+
+total_reviews = len(review_data)
+average_rating = review_data["rating"].mean()
+negative_review_count = (
+    review_data["rating"] <= 2
+).sum()
+
+review_metric_columns = st.columns(3)
+
+review_metric_columns[0].metric(
+    "评价数量",
+    f"{total_reviews:,}",
+)
+
+review_metric_columns[1].metric(
+    "平均评分",
+    f"{average_rating:.2f} / 5",
+)
+
+review_metric_columns[2].metric(
+    "负面评价数量",
+    f"{negative_review_count:,}",
+)
+
+
+review_summary["negative_rate_percent"] = (
+    review_summary["negative_rate"] * 100
+)
+
+review_chart = px.bar(
+    review_summary,
+    x="theme",
+    y="negative_rate_percent",
+    color="average_rating",
+    title="各评价主题负面率",
+    labels={
+        "theme": "评价主题",
+        "negative_rate_percent": "负面率（%）",
+        "average_rating": "平均评分",
+    },
+)
+
+st.plotly_chart(
+    review_chart,
+    use_container_width=True,
+)
+
+
+review_display = review_summary[
+    [
+        "theme",
+        "review_count",
+        "average_rating",
+        "negative_rate",
+    ]
+].copy()
+
+review_display.columns = [
+    "评价主题",
+    "评价数量",
+    "平均评分",
+    "负面率",
+]
+
+st.dataframe(
+    review_display,
+    use_container_width=True,
+    hide_index=True,
+    column_config={
+        "平均评分": st.column_config.NumberColumn(
+            format="%.2f",
+        ),
+        "负面率": st.column_config.NumberColumn(
+            format="%.1%%",
+        ),
+    },
+)
+st.header("AI运营建议")
 
 st.caption(
     "AI只能根据上方规则引擎提供的证据生成建议，"
