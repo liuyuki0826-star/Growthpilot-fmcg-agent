@@ -209,6 +209,7 @@ http://localhost:8501
 
 - [产品定义](docs/PRODUCT_BRIEF.md)
 - [数据字典](docs/DATA_DICTIONARY.md)
+- [评估方案](docs/EVALUATION.md)
 
 ## 技术栈
 
