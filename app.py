@@ -141,7 +141,7 @@ display_summary.columns = [
 
 st.dataframe(
     display_summary,
-    use_container_width=True,
+    width="stretch",
     hide_index=True,
 )
 st.header("经营趋势")
@@ -174,7 +174,7 @@ with chart_left:
 
     st.plotly_chart(
         gmv_chart,
-        use_container_width=True,
+        width="stretch",
     )
 
 with chart_right:
@@ -196,7 +196,7 @@ with chart_right:
 
     st.plotly_chart(
         sku_chart,
-        use_container_width=True,
+        width="stretch",
     )
 
 
@@ -297,7 +297,7 @@ review_chart = px.bar(
 
 st.plotly_chart(
     review_chart,
-    use_container_width=True,
+    width="stretch",
 )
 
 
@@ -319,7 +319,7 @@ review_display.columns = [
 
 st.dataframe(
     review_display,
-    use_container_width=True,
+    width="stretch",
     hide_index=True,
     column_config={
         "平均评分": st.column_config.NumberColumn(
